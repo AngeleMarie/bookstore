@@ -1,0 +1,3 @@
+netstat -ano | findstr :5780 #finding what services using the port 
+
+docker-compose up --build
