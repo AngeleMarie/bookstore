@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import session from 'express-session';
-
+import "./models/association.js"
 import dbConfig from './config/dbConfig.js';
 import bookRoutes from './routes/bookRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -16,6 +16,11 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT;
+
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
 
 app.use(helmet());
 app.use(session({

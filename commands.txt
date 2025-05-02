@@ -1,3 +1,11 @@
 netstat -ano | findstr :5780 #finding what services using the port 
 
 docker-compose up --build
+
+docker run --name redis-server -p 6379:6379 -d redis
+npm run seed:admin
+node -e "import('./config/dbConfig.js')"
+
+docker exec -it redis-server redis-cli
+
+GET keys*

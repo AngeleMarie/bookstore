@@ -1,19 +1,8 @@
-import { DataTypes, Sequelize } from "sequelize";
-
-
-process.config.DB_USER;
-
-const sequelize = new Sequelize({
-  dialect: "postgres",
-  username: "postgres",
-  password: "angele",
-  database: "practice",
-  host: "localhost",
-  port: 5432,
-});
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/dbConfig.js';
 
 const User = sequelize.define(
-  "users",
+  'users',
   {
     id: {
       type: DataTypes.INTEGER,
@@ -22,11 +11,19 @@ const User = sequelize.define(
       allowNull: false,
     },
 
-    fullName: {
+    firstName: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        len: [3, 250], // Updated length for fullName
+        len: [3, 250],
+      },
+    },
+
+    lastName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        len: [3, 250],
       },
     },
 
@@ -42,7 +39,7 @@ const User = sequelize.define(
     phoneNumber: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true, // Ensure the phone number is unique
+      unique: true,
       validate: {
         len: [10, 15],
       },
@@ -57,85 +54,85 @@ const User = sequelize.define(
     },
 
     role: {
-      type: DataTypes.ENUM("admin", "client"), 
+      type: DataTypes.ENUM('admin', 'client'),
       allowNull: false,
-      defaultValue: "client", 
+      defaultValue: 'client',
     },
+
     activationCode: {
       type: DataTypes.STRING,
       allowNull: true,
     },
+
     status: {
       type: DataTypes.ENUM('pending', 'active', 'reset'),
       allowNull: false,
       defaultValue: 'pending',
     },
+
     balance: {
-      type: DataTypes.FLOAT, // or DOUBLE
+      type: DataTypes.FLOAT,
       allowNull: false,
-      defaultValue: 0, // start with 0 balance
+      defaultValue: 0,
     },
 
     address: {
       type: DataTypes.STRING,
       allowNull: true,
       validate: {
-        len: [0, 500], // Length for address field
+        len: [0, 500],
       },
     },
 
     profileImage: {
       type: DataTypes.STRING,
-      allowNull: true, // URL or path to the profile image
+      allowNull: true,
     },
   },
   {
     timestamps: false,
     indexes: [
       {
-        name: "tb_fullName",
-        fields: ["fullName"], // Index for fullName
+        name: 'tb_firstName',
+        fields: ['firstName'],
       },
       {
-        name: "tb_email",
-        fields: ["email"], // Index for email
+        name: 'tb_lastName',
+        fields: ['lastName'],
       },
       {
-        name: "tb_phoneNumber",
-        fields: ["phoneNumber"], // Index for phoneNumber
+        name: 'tb_email',
+        fields: ['email'],
       },
       {
-        name: "tb_role",
-        fields: ["role"], // Index for role
+        name: 'tb_phoneNumber',
+        fields: ['phoneNumber'],
       },
       {
-        name: "tb_address",
-        fields: ["address"], // Index for address
+        name: 'tb_role',
+        fields: ['role'],
       },
       {
-        name: "tb_activationCode",
-        fields: ["activationCode"], // Index for activationCode
+        name: 'tb_address',
+        fields: ['address'],
       },
       {
-        name: "tb_balance",
-        fields: ["balance"], // Index for balance
-
+        name: 'tb_activationCode',
+        fields: ['activationCode'],
       },
       {
-        name: "tb_status",
-        fields: ["status"], // Index for address
+        name: 'tb_balance',
+        fields: ['balance'],
+      },
+      {
+        name: 'tb_status',
+        fields: ['status'],
       },
     ],
+  },
+  {
+    timestamps: false,
   }
 );
-
-sequelize
-  .sync({ alter: true })
-  .then(() => {
-    console.log("Data table created successfully");
-  })
-  .catch((error) => {
-    console.error("Error creating the data table:", error);
-  });
 
 export default User;

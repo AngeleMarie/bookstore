@@ -1,929 +1,840 @@
 {
-    "openapi": "3.0.0",
-    "info": {
-      "title": "Book Management API ",
-      "description": "API documentation for the book store service developed by Angele",
-      "version": "1.0.0",
-      "contact": {
-        "email": "asifiweangele@gmail.com"
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Book Management API ",
+    "description": "API documentation for the book store service developed by Angele",
+    "version": "1.0.0",
+    "contact": {
+      "email": "asifiwemarie2006@gmail.com",
+      "name": "Angele Marie",
+      "url": "https://github.com/AngeleMarie"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5600/api/v1",
+      "description": "API Base URL"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints"
+    },
+    {
+      "name": "Users",
+      "description": "User management"
+    },
+    {
+      "name": "Books",
+      "description": "Book management"
+    },
+    {
+      "name": "Transactions",
+      "description": "Transactions management"
+    },
+    {
+      "name": "Admin",
+      "description": "Admin management and statistics"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "description": "Create a new user account",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegistration"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User registered successfully"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
       }
     },
-    "servers": [
-      {
-        "url": "http://localhost:5780",
-        "description": "API Base URL"
+    "/auth/activate-account": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Activate user account",
+        "description": "Activate a newly registered user account using email and activation code",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "code": {
+                    "type": "string",
+                    "example": "657123"
+                  }
+                },
+                "required": ["email", "code"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account activated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Account activated successfully."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid activation code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
       }
-    ],
-    "tags": [
-      {
-        "name": "Auth",
-        "description": "Authentication endpoints"
-      },
-      {
-        "name": "Users",
-        "description": "User management"
-      },
-      {
-        "name": "Books",
-        "description": "Book management"
-      },
-      {
-        "name": "Bookings",
-        "description": "Booking management"
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login to the system",
+        "description": "Authenticate a user and get a token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "password123"
+                  }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Login successful"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
       }
-    ],
-    "paths": {
-      "/auth/register": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Register a new user",
-          "description": "Create a new user account",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserRegistration"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "User created successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "User registered successfully"
-                      },
-                      "user": {
-                        "$ref": "#/components/schemas/User"
-                      },
-                      "token": {
-                        "type": "string",
-                        "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad request",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "409": {
-              "description": "Email already exists",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/auth/login": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Login to the system",
-          "description": "Authenticate a user and get a token",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "email": {
-                      "type": "string",
-                      "format": "email",
-                      "example": "user@example.com"
-                    },
-                    "password": {
-                      "type": "string",
-                      "format": "password",
-                      "example": "password123"
-                    }
-                  },
-                  "required": ["email", "password"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Login successful",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Login successful"
-                      },
-                      "user": {
-                        "$ref": "#/components/schemas/User"
-                      },
-                      "token": {
-                        "type": "string",
-                        "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad request",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Invalid credentials",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/auth/forgot-password": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Request password reset",
-          "description": "Request a password reset code via email",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "email": {
-                      "type": "string",
-                      "format": "email",
-                      "example": "user@example.com"
-                    }
-                  },
-                  "required": ["email"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Reset code sent",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Reset code sent to your email"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "User not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/auth/reset-password": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Reset password",
-          "description": "Reset user password using the code received via email",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "email": {
-                      "type": "string",
-                      "format": "email",
-                      "example": "user@example.com"
-                    },
-                    "resetCode": {
-                      "type": "string",
-                      "example": "123456"
-                    },
-                    "newPassword": {
-                      "type": "string",
-                      "format": "password",
-                      "example": "newPassword123"
-                    }
-                  },
-                  "required": ["email", "resetCode", "newPassword"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Password reset successful",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Password reset successful"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Invalid reset code",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "User not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/users": {
-        "get": {
-          "tags": ["Users"],
-          "summary": "Get all users",
-          "description": "Get a list of all users (admin only)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "query",
-              "name": "page",
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Request password reset",
+        "description": "Request a password reset code via email",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
               "schema": {
-                "type": "integer",
-                "default": 1
-              },
-              "description": "Page number"
-            },
-            {
-              "in": "query",
-              "name": "limit",
-              "schema": {
-                "type": "integer",
-                "default": 10
-              },
-              "description": "Number of items per page"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of users",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "count": {
-                        "type": "integer",
-                        "example": 10
-                      },
-                      "totalPages": {
-                        "type": "integer",
-                        "example": 5
-                      },
-                      "currentPage": {
-                        "type": "integer",
-                        "example": 1
-                      },
-                      "users": {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/components/schemas/User"
-                        }
-                      }
-                    }
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
                   }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "403": {
-              "description": "Forbidden - Not an admin",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/users/{id}": {
-        "get": {
-          "tags": ["Users"],
-          "summary": "Get user by ID",
-          "description": "Get details of a specific user (admin or own profile)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "User ID"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "User details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "user": {
-                        "$ref": "#/components/schemas/User"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "403": {
-              "description": "Forbidden - Not authorized to view this profile",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "User not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
+                },
+                "required": ["email"]
               }
             }
           }
         },
-        "put": {
-          "tags": ["Users"],
-          "summary": "Update user",
-          "description": "Update user details (admin or own profile)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "User ID"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserUpdate"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "User updated successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "User updated successfully"
-                      },
-                      "user": {
-                        "$ref": "#/components/schemas/User"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad request",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "403": {
-              "description": "Forbidden - Not authorized to update this profile",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "User not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "delete": {
-          "tags": ["Users"],
-          "summary": "Delete user",
-          "description": "Delete a user (admin only)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "User ID"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "User deleted successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "User deleted successfully"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "403": {
-              "description": "Forbidden - Not an admin",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "User not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/users/profile": {
-        "get": {
-          "tags": ["Users"],
-          "summary": "Get current user profile",
-          "description": "Get the profile of the currently authenticated user",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "User profile",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "user": {
-                        "$ref": "#/components/schemas/User"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "put": {
-          "tags": ["Users"],
-          "summary": "Update current user profile",
-          "description": "Update the profile of the currently authenticated user",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserUpdate"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Profile updated successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Profile updated successfully"
-                      },
-                      "user": {
-                        "$ref": "#/components/schemas/User"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad request",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/users/change-password": {
-        "post": {
-          "tags": ["Users"],
-          "summary": "Change password",
-          "description": "Change password for the currently authenticated user",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "requestBody": {
-            "required": true,
+        "responses": {
+          "200": {
+            "description": "Reset code sent",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "currentPassword": {
-                      "type": "string",
-                      "format": "password",
-                      "example": "currentPassword123"
+                    "success": {
+                      "type": "boolean",
+                      "example": true
                     },
-                    "newPassword": {
+                    "message": {
                       "type": "string",
-                      "format": "password",
-                      "example": "newPassword123"
+                      "example": "Reset code sent to your email"
                     }
-                  },
-                  "required": ["currentPassword", "newPassword"]
+                  }
                 }
               }
             }
           },
-          "responses": {
-            "200": {
-              "description": "Password changed successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Password changed successfully"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad request or incorrect current password",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           }
         }
-      },
-      "/books": {
-        "get": {
-          "tags": ["Books"],
-          "summary": "Get all books",
-          "description": "Get a list of all books",
-          "parameters": [
-            {
-              "in": "query",
-              "name": "page",
-              "schema": {
-                "type": "integer",
-                "default": 1
-              },
-              "description": "Page number"
-            },
-            {
-              "in": "query",
-              "name": "limit",
-              "schema": {
-                "type": "integer",
-                "default": 10
-              },
-              "description": "Number of items per page"
-            },
-            {
-              "in": "query",
-              "name": "title",
-              "schema": {
-                "type": "string"
-              },
-              "description": "Filter by title (partial match)"
-            },
-            {
-              "in": "query",
-              "name": "author",
-              "schema": {
-                "type": "string"
-              },
-              "description": "Filter by author (partial match)"
-            },
-            {
-              "in": "query",
-              "name": "category",
-              "schema": {
-                "type": "string"
-              },
-              "description": "Filter by category"
-            },
-            {
-              "in": "query",
-              "name": "sort",
-              "schema": {
-                "type": "string",
-                "enum": ["title", "author", "price", "createdAt"],
-                "default": "createdAt"
-              },
-              "description": "Field to sort by"
-            },
-            {
-              "in": "query",
-              "name": "order",
-              "schema": {
-                "type": "string",
-                "enum": ["asc", "desc"],
-                "default": "desc"
-              },
-              "description": "Sort order (ascending or descending)"
+      }
+    },
+    "/auth/logout": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Logout user",
+        "description": "Logs out the authenticated user by blacklisting their JWT token in Redis.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User logged out successfully"
+                    }
+                  }
+                }
+              }
             }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of books",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "count": {
-                        "type": "integer",
-                        "example": 10
-                      },
-                      "totalPages": {
-                        "type": "integer",
-                        "example": 5
-                      },
-                      "currentPage": {
-                        "type": "integer",
-                        "example": 1
-                      },
-                      "books": {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/components/schemas/Book"
+          },
+          "401": {
+            "description": "Unauthorized - No valid token provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Reset password",
+        "description": "Reset user password using the code received via email",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "resetCode": {
+                    "type": "string",
+                    "example": "123456"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "newPassword123"
+                  }
+                },
+                "required": ["email", "resetCode", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset successful"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid reset code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/users/change-details": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update user details",
+        "description": "Update the authenticated user's profile information",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "type": "string",
+                    "example": "John",
+                    "required": true
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Doe",
+                    "required": true
+                  },
+                  "address": {
+                    "type": "string",
+                    "example": "123 Main St"
+                  },
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": "+1234567890"
+                  },
+                  "balance": {
+                    "type": "float",
+                    "example": "234"
+                  }
+                },
+                "required": ["firstName", "lastName"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/upload-profile-image/{id}": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Upload profile image",
+        "description": "Upload a profile image for a user (user can only upload their own image unless admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profileImage": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Profile image file"
+                  }
+                },
+                "required": ["profileImage"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile image uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Profile image updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing image file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Not authorized to modify this profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/remove-profile-image/{id}": {
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Remove profile image",
+        "description": "Remove the profile image of a user (user can only remove their own image unless admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile image removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Profile image removed successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - No profile image exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Not authorized to modify this profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/profile": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get current user profile",
+        "description": "Get the profile of the currently authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/statistics": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get system statistics",
+        "description": "Get statistics about users, books, and admin balance (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "totalUsers": {
+                          "type": "integer",
+                          "example": 150
+                        },
+                        "adminBalance": {
+                          "type": "number",
+                          "format": "float",
+                          "example": 5280.75
+                        },
+                        "totalBooks": {
+                          "type": "integer",
+                          "example": 325
                         }
                       }
                     }
@@ -931,856 +842,291 @@
                 }
               }
             }
-          }
-        },
-        "post": {
-          "tags": ["Books"],
-          "summary": "Create a new book",
-          "description": "Add a new book (admin only)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "requestBody": {
-            "required": true,
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BookCreate"
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           },
-          "responses": {
-            "201": {
-              "description": "Book created successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Book created successfully"
-                      },
-                      "book": {
-                        "$ref": "#/components/schemas/Book"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad request",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "403": {
-              "description": "Forbidden - Not an admin",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/books/{id}": {
-        "get": {
-          "tags": ["Books"],
-          "summary": "Get book by ID",
-          "description": "Get details of a specific book",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "Book ID"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Book details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "book": {
-                        "$ref": "#/components/schemas/Book"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Book not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "put": {
-          "tags": ["Books"],
-          "summary": "Update book",
-          "description": "Update book details (admin only)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "Book ID"
-            }
-          ],
-          "requestBody": {
-            "required": true,
+          "403": {
+            "description": "Forbidden - Not an admin",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BookUpdate"
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           },
-          "responses": {
-            "200": {
-              "description": "Book updated successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Book updated successfully"
-                      },
-                      "book": {
-                        "$ref": "#/components/schemas/Book"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad request",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "403": {
-              "description": "Forbidden - Not an admin",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Book not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "delete": {
-          "tags": ["Books"],
-          "summary": "Delete book",
-          "description": "Delete a book (admin only)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "Book ID"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Book deleted successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Book deleted successfully"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "403": {
-              "description": "Forbidden - Not an admin",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Book not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/books/{id}/cover": {
-        "post": {
-          "tags": ["Books"],
-          "summary": "Upload book cover image",
-          "description": "Upload a cover image for a book (admin only)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "Book ID"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "multipart/form-data": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "cover": {
-                      "type": "string",
-                      "format": "binary",
-                      "description": "Book cover image file"
-                    }
-                  },
-                  "required": ["cover"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Cover image uploaded successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Cover image uploaded successfully"
-                      },
-                      "book": {
-                        "$ref": "#/components/schemas/Book"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad request",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "403": {
-              "description": "Forbidden - Not an admin",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Book not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/bookings": {
-        "get": {
-          "tags": ["Bookings"],
-          "summary": "Get all bookings",
-          "description": "Get a list of all bookings (admin) or user's bookings (regular user)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "query",
-              "name": "page",
-              "schema": {
-                "type": "integer",
-                "default": 1
-              },
-              "description": "Page number"
-            },
-            {
-              "in": "query",
-              "name": "limit",
-              "schema": {
-                "type": "integer",
-                "default": 10
-              },
-              "description": "Number of items per page"
-            },
-            {
-              "in": "query",
-              "name": "status",
-              "schema": {
-                "type": "string",
-                "enum": ["pending", "approved", "rejected", "returned"]
-              },
-              "description": "Filter by booking status"
-            },
-            {
-              "in": "query",
-              "name": "startDate",
-              "schema": {
-                "type": "string",
-                "format": "date"
-              },
-              "description": "Filter by start date (YYYY-MM-DD)"
-            },
-            {
-              "in": "query",
-              "name": "endDate",
-              "schema": {
-                "type": "string",
-                "format": "date"
-              },
-              "description": "Filter by end date (YYYY-MM-DD)"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of bookings",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "count": {
-                        "type": "integer",
-                        "example": 10
-                      },
-                      "totalPages": {
-                        "type": "integer",
-                        "example": 5
-                      },
-                      "currentPage": {
-                        "type": "integer",
-                        "example": 1
-                      },
-                      "bookings": {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/components/schemas/Booking"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "post": {
-          "tags": ["Bookings"],
-          "summary": "Create a new booking",
-          "description": "Request to borrow a book",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "requestBody": {
-            "required": true,
+          "500": {
+            "description": "Server error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BookingCreate"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Booking created successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Booking request submitted successfully"
-                      },
-                      "booking": {
-                        "$ref": "#/components/schemas/Booking"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad request",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Book not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "409": {
-              "description": "Book not available for selected dates",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           }
         }
-      },
-      "/bookings/{id}": {
-        "get": {
-          "tags": ["Bookings"],
-          "summary": "Get booking by ID",
-          "description": "Get details of a specific booking (admin or booking owner)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "Booking ID"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Booking details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "booking": {
-                        "$ref": "#/components/schemas/Booking"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "403": {
-              "description": "Forbidden - Not authorized to view this booking",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Booking not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            }
+      }
+    },
+    "/admin/clients": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get all clients",
+        "description": "Get a list of all clients/users (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
           }
-        },
-        "put": {
-          "tags": ["Bookings"],
-          "summary": "Update booking status",
-          "description": "Update the status of a booking (admin only)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "Booking ID"
-            }
-          ],
-          "requestBody": {
-            "required": true,
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Number of items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of clients",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": ["approved", "rejected", "returned"],
-                      "example": "approved"
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
                     },
-                    "notes": {
-                      "type": "string",
-                      "example": "Book borrowed in good condition"
+                    "totalPages": {
+                      "type": "integer",
+                      "example": 5
+                    },
+                    "currentPage": {
+                      "type": "integer",
+                      "example": 1
                     }
-                  },
-                  "required": ["status"]
+                  }
                 }
               }
             }
           },
-          "responses": {
-            "200": {
-              "description": "Booking status updated successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Booking status updated successfully"
-                      },
-                      "booking": {
-                        "$ref": "#/components/schemas/Booking"
-                      }
-                    }
-                  }
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
-            },
-            "400": {
-              "description": "Bad request",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "403": {
-              "description": "Forbidden - Not an admin",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Booking not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           }
-        },
-        "delete": {
-          "tags": ["Bookings"],
-          "summary": "Cancel booking",
-          "description": "Cancel a pending booking (user can cancel their own pending bookings, admin can cancel any)",
-          "security": [
-            {
-              "bearerAuth": []
-            }
-          ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "Booking ID"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Booking cancelled successfully",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Booking cancelled successfully"
+        }
+      }
+    },
+    "/admin/search": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Search users by name",
+        "description": "Search for users by their name (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name to search for (partial match)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users matching the search query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
                       }
                     }
                   }
                 }
               }
-            },
-            "400": {
-              "description": "Bad request - Cannot cancel approved/returned booking",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
-            },
-            "401": {
-              "description": "Unauthorized",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
-            },
-            "403": {
-              "description": "Forbidden - Not authorized to cancel this booking",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
-                  }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "/books/get-all": {
+      "get": {
+        "tags": ["Books"],
+        "summary": "Get all books",
+        "description": "Retrieve a paginated, sorted, and optionally filtered list of all books.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
             },
-            "404": {
-              "description": "Booking not found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Error"
+            "description": "Page number (default is 1)"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Number of items per page"
+          },
+          {
+            "in": "query",
+            "name": "bookName",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter books by partial match on book name"
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": ["bookName", "author", "unitPrice", "publishingDate"],
+              "default": "publishingDate"
+            },
+            "description": "Sort by a field"
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "desc"
+            },
+            "description": "Sort order: ascending or descending"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of books fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "count": {
+                      "type": "integer",
+                      "example": 10
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "example": 5
+                    },
+                    "currentPage": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "books": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Book"
+                      }
+                    }
                   }
                 }
               }
@@ -1789,416 +1135,788 @@
         }
       }
     },
-    "components": {
-      "schemas": {
-        "UserRegistration": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "example": "John Doe"
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "example": "john@example.com"
-            },
-            "password": {
-              "type": "string",
-              "format": "password",
-              "example": "password123"
-            },
-            "phone": {
-              "type": "string",
-              "example": "+1234567890"
-            },
-            "address": {
-              "type": "string",
-              "example": "123 Main St, City, Country"
-            }
-          },
-          "required": ["name", "email", "password"]
-        },
-        "UserUpdate": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "example": "John Doe"
-            },
-            "phone": {
-              "type": "string",
-              "example": "+1234567890"
-            },
-            "address": {
-              "type": "string",
-              "example": "123 Main St, City, Country"
-            },
-            "profileImage": {
-              "type": "string",
-              "example": "/uploads/profiles/user-123.jpg"
-            }
+    "/books/add": {
+      "post": {
+        "tags": ["Books"],
+        "summary": "Create a new book",
+        "description": "Add a new book (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
           }
-        },
-        "User": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "example": "60d21b4667d0d8992e610c85"
-            },
-            "name": {
-              "type": "string",
-              "example": "John Doe"
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "example": "john@example.com"
-            },
-            "phone": {
-              "type": "string",
-              "example": "+1234567890"
-            },
-            "address": {
-              "type": "string",
-              "example": "123 Main St, City, Country"
-            },
-            "role": {
-              "type": "string",
-              "enum": ["user", "admin"],
-              "example": "user"
-            },
-            "profileImage": {
-              "type": "string",
-              "example": "/uploads/profiles/user-123.jpg"
-            },
-            "createdAt": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2023-06-23T18:25:43.511Z"
-            },
-            "updatedAt": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2023-06-23T18:25:43.511Z"
-            }
-          }
-        },
-        "BookCreate": {
-          "type": "object",
-          "properties": {
-            "title": {
-              "type": "string",
-              "example": "The Great Gatsby"
-            },
-            "author": {
-              "type": "string",
-              "example": "F. Scott Fitzgerald"
-            },
-            "description": {
-              "type": "string",
-              "example": "Set in the Jazz Age on Long Island, near New York City, the novel depicts first-person narrator Nick Carraway's interactions with mysterious millionaire Jay Gatsby..."
-            },
-            "isbn": {
-              "type": "string",
-              "example": "9780743273565"
-            },
-            "category": {
-              "type": "string",
-              "example": "Fiction"
-            },
-            "subcategory": {
-              "type": "string",
-              "example": "Classics"
-            },
-            "publisher": {
-              "type": "string",
-              "example": "Scribner"
-            },
-            "publishedYear": {
-              "type": "integer",
-              "example": 1925
-            },
-            "pages": {
-              "type": "integer",
-              "example": 180
-            },
-            "language": {
-              "type": "string",
-              "example": "English"
-            },
-            "available": {
-              "type": "boolean",
-              "example": true
-            },
-            "quantity": {
-              "type": "integer",
-              "example": 5
-            },
-            "price": {
-              "type": "number",
-              "format": "float",
-              "example": 12.99
-            }
-          },
-          "required": ["title", "author", "isbn", "category", "available", "quantity"]
-        },
-        "BookUpdate": {
-          "type": "object",
-          "properties": {
-            "title": {
-              "type": "string",
-              "example": "The Great Gatsby"
-            },
-            "author": {
-              "type": "string",
-              "example": "F. Scott Fitzgerald"
-            },
-            "description": {
-              "type": "string",
-              "example": "Set in the Jazz Age on Long Island, near New York City, the novel depicts first-person narrator Nick Carraway's interactions with mysterious millionaire Jay Gatsby..."
-            },
-            "isbn": {
-              "type": "string",
-              "example": "9780743273565"
-            },
-            "category": {
-              "type": "string",
-              "example": "Fiction"
-            },
-            "subcategory": {
-              "type": "string",
-              "example": "Classics"
-            },
-            "publisher": {
-              "type": "string",
-              "example": "Scribner"
-            },
-            "publishedYear": {
-              "type": "integer",
-              "example": 1925
-            },
-            "pages": {
-              "type": "integer",
-              "example": 180
-            },
-            "language": {
-              "type": "string",
-              "example": "English"
-            },
-            "available": {
-              "type": "boolean",
-              "example": true
-            },
-            "quantity": {
-              "type": "integer",
-              "example": 5
-            },
-            "price": {
-              "type": "number",
-              "format": "float",
-              "example": 12.99
-            }
-          }
-        },
-        "Book": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "example": "60d21b4667d0d8992e610c85"
-            },
-            "title": {
-              "type": "string",
-              "example": "The Great Gatsby"
-            },
-            "author": {
-              "type": "string",
-              "example": "F. Scott Fitzgerald"
-            },
-            "description": {
-              "type": "string",
-              "example": "Set in the Jazz Age on Long Island, near New York City, the novel depicts first-person narrator Nick Carraway's interactions with mysterious millionaire Jay Gatsby..."
-            },
-            "isbn": {
-              "type": "string",
-              "example": "9780743273565"
-            },
-            "category": {
-              "type": "string",
-              "example": "Fiction"
-            },
-            "subcategory": {
-              "type": "string",
-              "example": "Classics"
-            },
-            "publisher": {
-              "type": "string",
-              "example": "Scribner"
-            },
-            "publishedYear": {
-              "type": "integer",
-              "example": 1925
-            },
-            "pages": {
-              "type": "integer",
-              "example": 180
-            },
-            "language": {
-              "type": "string",
-              "example": "English"
-            },
-            "coverImage": {
-              "type": "string",
-              "example": "/uploads/covers/book-123.jpg"
-            },
-            "available": {
-              "type": "boolean",
-              "example": true
-            },
-            "quantity": {
-              "type": "integer",
-              "example": 5
-            },
-            "price": {
-              "type": "number",
-              "format": "float",
-              "example": 12.99
-            },
-            "createdAt": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2023-06-23T18:25:43.511Z"
-            },
-            "updatedAt": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2023-06-23T18:25:43.511Z"
-            }
-          }
-        },
-        "BookingCreate": {
-          "type": "object",
-          "properties": {
-            "bookId": {
-              "type": "string",
-              "example": "60d21b4667d0d8992e610c85"
-            },
-            "startDate": {
-              "type": "string",
-              "format": "date",
-              "example": "2023-07-01"
-            },
-            "endDate": {
-              "type": "string",
-              "format": "date",
-              "example": "2023-07-15"
-            },
-            "notes": {
-              "type": "string",
-              "example": "First time borrowing, will take good care of it"
-            }
-          },
-          "required": ["bookId", "startDate", "endDate"]
-        },
-        "Booking": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "example": "60d21b4667d0d8992e610c85"
-            },
-            "user": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "example": "60d21b4667d0d8992e610c85"
-                },
-                "name": {
-                  "type": "string",
-                  "example": "John Doe"
-                },
-                "email": {
-                  "type": "string",
-                  "format": "email",
-                  "example": "john@example.com"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "bookName",
+                  "description",
+                  "quantityInStock",
+                  "unitPrice",
+                  "publishingDate",
+                  "bookCover"
+                ],
+                "properties": {
+                  "bookName": {
+                    "type": "string",
+                    "example": "Clean Code"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "A handbook of agile software craftsmanship."
+                  },
+                  "quantityInStock": {
+                    "type": "integer",
+                    "example": 10
+                  },
+                  "unitPrice": {
+                    "type": "number",
+                    "format": "float",
+                    "example": 29.99
+                  },
+                  "publishingDate": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2023-05-15"
+                  },
+                  "status": {
+                    "type": "string",
+                    "example": "In Transit"
+                  },
+                  "bookCover": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The image file for the book cover"
+                  }
                 }
               }
-            },
-            "book": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "example": "60d21b4667d0d8992e610c85"
-                },
-                "title": {
-                  "type": "string",
-                  "example": "The Great Gatsby"
-                },
-                "author": {
-                  "type": "string",
-                  "example": "F. Scott Fitzgerald"
-                },
-                "coverImage": {
-                  "type": "string",
-                  "example": "/uploads/covers/book-123.jpg"
-                }
-              }
-            },
-            "startDate": {
-              "type": "string",
-              "format": "date",
-              "example": "2023-07-01"
-            },
-            "endDate": {
-              "type": "string",
-              "format": "date",
-              "example": "2023-07-15"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["pending", "approved", "rejected", "returned"],
-              "example": "approved"
-            },
-            "notes": {
-              "type": "string",
-              "example": "Book borrowed in good condition"
-            },
-            "createdAt": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2023-06-23T18:25:43.511Z"
-            },
-            "updatedAt": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2023-06-23T18:25:43.511Z"
             }
           }
         },
-        "Error": {
-          "type": "object",
-          "properties": {
-            "success": {
-              "type": "boolean",
-              "example": false
-            },
-            "error": {
-              "type": "string",
-              "example": "Error message"
+        "responses": {
+          "201": {
+            "description": "Book created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Book added successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Book"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
             }
           }
         }
-      },
-      "securitySchemes": {
-        "bearerAuth": {
-          "type": "http",
-          "scheme": "bearer",
-          "bearerFormat": "JWT"
+      }
+    },
+
+    "/books/get/{id}": {
+      "get": {
+        "tags": ["Books"],
+        "summary": "Get book by ID",
+        "description": "Retrieve details of a specific book using its ID.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The unique identifier of the book"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Book found successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "book": {
+                      "$ref": "#/components/schemas/Book"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Book not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/update/{id}": {
+      "put": {
+        "tags": ["Books"],
+        "summary": "Update book",
+        "description": "Update book details including cover image (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Book ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bookName": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "quantityInStock": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "unitPrice": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "publishingDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["Arrived", "In Transit"]
+                  },
+                  "bookCover": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Cover image file"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Book updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Book updated successfully"
+                    },
+                    "book": {
+                      "$ref": "#/components/schemas/Book"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Book not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/delete/{id}": {
+      "delete": {
+        "tags": ["Books"],
+        "summary": "Delete book",
+        "description": "Delete a book (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Book ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Book deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Book deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Book not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transactions/buy/{bookId}": {
+      "post": {
+        "summary": "Purchase a book",
+        "tags": ["Transactions"],
+        "description": "Allows an authenticated user to purchase a specific book by ID. The book must be in stock.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the book to purchase"
+          }
+        ],
+        "responses": {
+       "200": {
+  "description": "Success",
+  "content": {
+    "application/json": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          }
         }
       }
     }
   }
+},
+          "400": {
+            "description": "Bad request or insufficient stock",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Not enough stock available."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Authentication required."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+  "/transactions/my-transactions": {
+    "get": {
+      "tags": ["Transactions"],
+      "summary": "Get transactions for the currently authenticated user",
+      "security": [{ "bearerAuth": [] }],
+      "responses": {
+     "200": {
+  "description": "Success",
+  "content": {
+    "application/json": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+        "400": {
+          "description": "Bad request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Unauthorized"
+        },
+        "500": {
+          "description": "Internal server error"
+        }
+      }
+    }
+  }
+},
+
+  "components": {
+    "schemas": {
+      "Transaction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "txn_123456"
+        },
+        "userId": {
+          "type": "string",
+          "example": "user_abc"
+        },
+        "adminId": {
+          "type": "string",
+          "example": "admin_xyz"
+        },
+        "bookId": {
+          "type": "string",
+          "example": "book_def"
+        },
+        "amount": {
+          "type": "number",
+          "example": 19.99
+        },
+        "transactionType": {
+          "type": "string",
+          "example": "purchase"
+        },
+        "status": {
+          "type": "string",
+          "example": "completed"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2025-05-02T12:34:56.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2025-05-02T13:00:00.000Z"
+        }
+      }
+    },
+      "UserRegistration": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "password123"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Main St, City, Country"
+          }
+        },
+        "required": ["firstName", "lastName", "email", "password"]
+      },
+      "UserUpdate": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "John "
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Main St, City, Country"
+          },
+          "profileImage": {
+            "type": "string",
+            "example": "/uploads/profiles/user-123.jpg"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "60d21b4667d0d8992e610c85"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Main St, City, Country"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin"],
+            "example": "user"
+          },
+          "profileImage": {
+            "type": "string",
+            "example": "/uploads/profiles/user-123.jpg"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-06-23T18:25:43.511Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-06-23T18:25:43.511Z"
+          }
+        }
+      },
+      "BookCreate": {
+        "type": "object",
+        "properties": {
+          "bookName": {
+            "type": "string",
+            "example": "The Great Gatsby"
+          },
+          "description": {
+            "type": "string",
+            "example": "Set in the Jazz Age on Long Island, the novel follows Nick Carraway's encounters with Jay Gatsby..."
+          },
+
+          "publishingDate": {
+            "type": "string",
+            "format": "date",
+            "example": "1925-04-10"
+          },
+          "bookCover": {
+            "type": "string",
+            "format": "binary",
+            "example": "/uploads/covers/book-123.jpg"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Arrived", "In Transit"],
+            "example": "In Transit"
+          },
+          "quantityInStock": {
+            "type": "integer",
+            "example": 5
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "float",
+            "example": 12.99
+          }
+        },
+        "required": [
+          "bookName",
+          "status",
+          "unitPrice",
+          "publishingDate",
+          "quantityInStock"
+        ]
+      },
+      "BookUpdate": {
+        "type": "object",
+        "properties": {
+          "bookName": {
+            "type": "string",
+            "example": "The Great Gatsby"
+          },
+          "description": {
+            "type": "string",
+            "example": "Updated description about the novel."
+          },
+          "publishingDate": {
+            "type": "string",
+            "format": "date",
+            "example": "1925-04-10"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Arrived", "In Transit"],
+            "example": "Arrived"
+          },
+          "quantityInStock": {
+            "type": "integer",
+            "example": 10
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "float",
+            "example": 15.49
+          }
+        }
+      },
+      "Book": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "60d21b4667d0d8992e610c85"
+          },
+          "bookName": {
+            "type": "string",
+            "example": "The Great Gatsby"
+          },
+          "description": {
+            "type": "string",
+            "example": "Set in the Jazz Age on Long Island, near New York City, the novel depicts first-person narrator Nick Carraway's interactions with mysterious millionaire Jay Gatsby..."
+          },
+          "bookCover": {
+            "type": "string",
+            "example": "/uploads/covers/book-123.jpg"
+          },
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "quantityInStock": {
+            "type": "integer",
+            "example": 5
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "float",
+            "example": 12.99
+          },
+          "publishingDate": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-06-23T18:25:43.511Z"
+          }
+        }
+        
+      },
+   
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "example": "Error message"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

@@ -1,84 +1,76 @@
 import _ from 'lodash';
 import User from '../models/User.js';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import Redis from 'ioredis';
+import { Op } from 'sequelize';
 import generateCode from '../utils/codeGenerator.js';
 import { sendEmail } from '../config/emailConfig.js';
-import fs from 'fs';
 import path from 'path';
-import  userValidation  from '../validators/userValidation.js'; 
+import userValidation from '../validators/userValidation.js'; 
+import { loadTemplate } from '../utils/loadTemplate.js';
+import { blacklistToken, generateToken } from '../middlewares/tokenService.js';
+import { initializeSession, clearSession } from '../middlewares/sessionTimeout.js';
 
-const redisClient = new Redis();
-
-const loadTemplate = (filePath, code) => {
-    const template = fs.readFileSync(filePath, 'utf-8');
-    return template.replace('{{code}}', code);
-  }; 
-  
-  const createUser = async (req, res) => {
-    try {
-      const value = await userValidation.validateAsync(req.body);
-      const { fullName, email, password, address, phoneNumber } = _.pick(req.body, ['fullName', 'email', 'password', 'address', 'phoneNumber']);
-      
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) {
-        return res.status(400).json({ message: `Email ${email} is already registered.` });
-      }
-  
-      const salt = 10;
-      const hashedPassword = await bcrypt.hash(password, salt);
-      const activationCode = generateCode();
-      
-      const newUser = await User.create({ 
-        fullName, 
-        email, 
-        password: hashedPassword,
-        address,
-        phoneNumber,
-        status: 'Pending', 
-        activationCode
-      });
-  
-    const html = loadTemplate(path.resolve('templates', 'activationEmail.html'), activationCode);
-       await sendEmail({ to: email, subject: 'Activate Your Account', html });
-  
-      return res.status(201).json({
-        message: "User created successfully. Activation code sent to email.",
-        data: _.omit(newUser.toJSON(), ['password', 'activationCode']),
-      });
-  
-    } catch (error) {
-      console.error("Error in creating user:", error);
-      if (error.isJoi) {
-        return res.status(400).json({ error: `Validation error: ${error.details.map(detail => detail.message).join(', ')}` });
-      }
-      return res.status(500).json({ error: "An error occurred while creating the user." });
-    }
-  };
-
-export const initiateAccountActivation = async (req, res) => {
+const createUser = async (req, res) => {
   try {
-    const { email } = req.body;
-    const user = await User.findOne({ where: { email } });
-
-    if (!user) return res.status(404).json({ message: "User not found." });
-
+    const value = await userValidation.validateAsync(req.body);
+    const { firstName, lastName, email, password, address, phoneNumber } = _.pick(req.body, ['firstName', 'lastName', 'email', 'password', 'address', 'phoneNumber']);
+    
+    const existingUser = await User.findOne({
+      where: {
+        [Op.or]: [
+          { email },
+          { phoneNumber }
+        ]
+      }
+    });
+    
+    if (existingUser) {
+      let errorMessage = '';
+      if (existingUser.email === email) {
+        errorMessage = `Email ${email} is already registered. `;
+      }
+      if (existingUser.phoneNumber === phoneNumber) {
+        errorMessage += `Phone number ${phoneNumber} is already registered.`;
+      }
+      return res.status(400).json({ message: errorMessage });
+    }
+    
+    const salt = 10;
+    const hashedPassword = await bcrypt.hash(password, salt);
     const activationCode = generateCode();
-    user.activationCode = activationCode;
-    await user.save();
+    
+    const newUser = await User.create({ 
+      firstName,
+      lastName, 
+      email, 
+      password: hashedPassword,
+      address,
+      phoneNumber,
+      status: 'pending', 
+      activationCode
+    });
 
-    const html = loadTemplate(path.resolve('templates', 'activationEmail.html'), activationCode);
+    const html = loadTemplate(path.resolve('templates', 'activationEmail.html'), {
+      fullName: `${newUser.firstName} ${newUser.lastName}`,
+      activationCode: `${newUser.activationCode.split('').join(' ')}`,
+    });
     await sendEmail({ to: email, subject: 'Activate Your Account', html });
 
-    res.status(200).json({ message: "Activation email sent." });
+    return res.status(201).json({
+      message: "User created successfully. Activation code sent to email.",
+      data: _.omit(newUser.toJSON(), ['password', 'activationCode']),
+    });
+
   } catch (error) {
-    console.error("Error sending activation email:", error);
-    res.status(500).json({ error: "Error sending activation email." });
+    console.error("Error in creating user:", error);
+    if (error.isJoi) {
+      return res.status(400).json({ error: `Validation error: ${error.details.map(detail => detail.message).join(', ')}` });
+    }
+    return res.status(500).json({ error: "An error occurred while creating the user." });
   }
 };
 
-export const activateAccount = async (req, res) => {
+const activateAccount = async (req, res) => {
   try {
     const { email, code } = req.body;
     const user = await User.findOne({ where: { email } });
@@ -91,6 +83,15 @@ export const activateAccount = async (req, res) => {
     user.activationCode = null;
     await user.save();
 
+    const html = loadTemplate(path.resolve('templates', 'activationSuccess.html'), {
+      fullName: `${user.firstName} ${user.lastName}`,
+    });
+    await sendEmail({
+      to: email,
+      subject: 'Your Account Has Been Activated 🎉',
+      html,
+    });
+
     res.status(200).json({ message: "Account activated successfully." });
   } catch (error) {
     console.error("Error activating account:", error);
@@ -98,19 +99,22 @@ export const activateAccount = async (req, res) => {
   }
 };
 
-export const initiateResetPassword = async (req, res) => {
+const initiateResetPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ where: { email } });
 
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    const activationCode = generateActivationCode();
+    const activationCode = generateCode();
     user.activationCode = activationCode;
     user.status = 'reset';
     await user.save();
 
-    const html = loadTemplate(path.resolve('templates', 'resetPasswordEmail.html'), activationCode);
+    const html = loadTemplate(path.resolve('templates', 'resetPasswordEmail.html'), {
+      fullName: `${user.firstName} ${user.lastName}`,
+      activationCode: `${user.activationCode.split('').join(' ')}`,
+    });
     await sendEmail({ to: email, subject: 'Reset Your Password', html });
 
     res.status(200).json({ message: "Password reset email sent." });
@@ -120,12 +124,12 @@ export const initiateResetPassword = async (req, res) => {
   }
 };
 
-export const resetPassword = async (req, res) => {
+const resetPassword = async (req, res) => {
   try {
-    const { email, code, newPassword } = req.body;
+    const { email, resetCode, newPassword } = req.body;
     const user = await User.findOne({ where: { email } });
 
-    if (!user || user.activationCode !== code || user.status !== 'reset') {
+    if (!user || user.activationCode !== resetCode || user.status !== 'reset') {
       return res.status(400).json({ message: "Invalid reset code or user status." });
     }
 
@@ -135,6 +139,15 @@ export const resetPassword = async (req, res) => {
     user.activationCode = null;
     await user.save();
 
+    const html = loadTemplate(path.resolve('templates', 'resetSuccess.html'), {
+      fullName: `${user.firstName} ${user.lastName}`,
+    });
+    await sendEmail({
+      to: email,
+      subject: 'Password Reset Successful',
+      html,
+    });
+
     res.status(200).json({ message: "Password reset successfully." });
   } catch (error) {
     console.error("Error resetting password:", error);
@@ -142,7 +155,7 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-export const loginUser = async (req, res) => {
+const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email } });
@@ -166,14 +179,18 @@ export const loginUser = async (req, res) => {
       role: user.role,
     };
 
-    const token = jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1h" });
+    // Generate JWT token with 1 hour expiry
+    const token = generateToken(payload, "1h");
+    
+    // Initialize user session
+    await initializeSession(user.id);
 
     res.status(200).json({
       message: `User logged in successfully as ${user.role}`,
       token,
       user: {
         id: user.id,
-        fullName: user.fullName,
+        fullName: `${user.firstName} ${user.lastName}`,
         email: user.email,
         role: user.role,
       },
@@ -184,17 +201,22 @@ export const loginUser = async (req, res) => {
   }
 };
 
-export const logoutUser = async (req, res) => {
+const logoutUser = async (req, res) => {
   try {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) {
-      return res.status(401).json({ message: "Unauthenticated, header missing" });
+    // Get token from request (set by authentication middleware)
+    const token = req.token;
+    const userId = req.user?.id;
+    
+    if (!token || !userId) {
+      return res.status(401).json({ message: "Not authenticated" });
     }
-    const token = authHeader.split(' ')[1];
-    const decodedToken = jwt.decode(token);
-    const expiry = decodedToken.exp;
 
-    await redisClient.set(token, true, 'EX', expiry - Math.floor(Date.now() / 1000));
+    // Blacklist the token
+    await blacklistToken(token);
+    
+    // Clear the user session
+    await clearSession(userId);
+    
     res.status(200).json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error('Error during logout:', error);
@@ -204,7 +226,6 @@ export const logoutUser = async (req, res) => {
 
 export default {
   createUser,
-  initiateAccountActivation,
   activateAccount,
   initiateResetPassword,
   resetPassword,

@@ -1,45 +1,72 @@
-import jwt from 'jsonwebtoken';
-import Redis from 'ioredis';
+import jwt from "jsonwebtoken";
+import Redis from "ioredis";
 
-const redisClient = new Redis();
+const redisClient = new Redis({
+  retryStrategy: (times) => {
+    const delay = Math.min(times * 50, 2000);
+    return delay;
+  },
+});
+redisClient.on("error", (err) => {
+  console.error("Redis session timeout error:", err);
+});
+
+const timeoutDuration = 5 * 60; 
 
 const sessionTimeout = async (req, res, next) => {
-  const authHeader = req.headers['authorization'];
+  try {
+    const userId = req.user?.id;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: "Authorization header missing" });
-  }
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+    const key = `user:${userId}:lastActivity`;
 
-  const token = authHeader.split(' ')[1];
+    const lastActivity = await redisClient.get(key);
 
-  jwt.verify(token, process.env.SECRET_KEY, async (err, decodedToken) => {
-    if (err) {
-      return res.status(401).json({ message: "Invalid or expired token" });
+    if (!lastActivity) {
+      await redisClient.set(key, Date.now(), "EX", timeoutDuration);
+      return next();
     }
 
-    const userId = decodedToken.id; // Use user ID or any unique identifier
+    const currentTime = Date.now();
+    const lastActivityTime = parseInt(lastActivity);
 
-    // Retrieve the last activity timestamp from Redis (if available)
-    const lastActivity = await redisClient.get(`user:${userId}:lastActivity`);
-
-    const currentTime = Math.floor(Date.now() / 1000); // Get current time in seconds
-    const timeoutDuration = 5 * 60; // 5 minutes
-
-    if (lastActivity) {
-      // Check if the session has been inactive for more than 5 minutes
-      const inactivityDuration = currentTime - lastActivity;
-      if (inactivityDuration > timeoutDuration) {
-        return res.status(401).json({ error: 'Session expired due to inactivity. Please log in again.' });
-      }
+    if (currentTime - lastActivityTime > timeoutDuration * 1000) {
+      await redisClient.del(key);
+      return res.status(401).json({
+        error: "Session expired due to inactivity. Please log in again.",
+      });
     }
 
-    // Update the last activity timestamp in Redis
-    await redisClient.set(`user:${userId}:lastActivity`, currentTime);
+    await redisClient.set(key, Date.now(), "EX", timeoutDuration);
 
-    // Pass the user info to the next middleware
-    req.user = decodedToken;
     next();
-  });
+  } catch (error) {
+    console.error("Session timeout middleware error:", error);
+    next();
+  }
+};
+const initializeSession = async (userId) => {
+  try {
+    const key = `user:${userId}:lastActivity`;
+    await redisClient.set(key, Date.now(), "EX", timeoutDuration);
+    return true;
+  } catch (error) {
+    console.error("Error initializing session:", error);
+    return false;
+  }
 };
 
-export default sessionTimeout;
+const clearSession = async (userId) => {
+  try {
+    const key = `user:${userId}:lastActivity`;
+    await redisClient.del(key);
+    return true;
+  } catch (error) {
+    console.error("Error clearing session:", error);
+    return false;
+  }
+};
+
+export { sessionTimeout, initializeSession, clearSession };

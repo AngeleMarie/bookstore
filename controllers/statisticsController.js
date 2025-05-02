@@ -4,10 +4,10 @@ import Book from '../models/Book.js';
 
 const getStatistics = async (req, res) => {
   try {
-    // 1. Get total users
-    const totalUsers = await User.count();
+    const totalUsers = await User.count({
+      where: { role: 'client' }
+    });
 
-    // 2. Get admin balance
     const admin = await User.findOne({ where: { role: 'admin' } });
 
     if (!admin) {

@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import userValidation from '../validators/userValidation.js';
+import { Op } from 'sequelize';
 import User from '../models/User.js';
 import bcrypt from 'bcrypt';
-import generateCode from '../utils/codeGenerator.js';
 
 
 
@@ -20,7 +20,7 @@ const getCurrentUser = async (req, res) => {
 
 const getAllClients = async (req, res) => {
   try {
-    const clients = await User.findAll({ where: { role: 'client' }, attributes: { exclude: ['password', 'activationCode'] } });
+    const clients = await User.findAll({ where: { role: 'client' }, attributes: { exclude: ['password', 'activationCode','balance','role','status'] } });
     return res.status(200).json({ data: clients });
   } catch (error) {
     console.error("Error fetching clients:", error);
@@ -31,11 +31,21 @@ const getAllClients = async (req, res) => {
 const searchUserByName = async (req, res) => {
   try {
     const { name } = req.query;
+
+    if (!name) {
+      return res.status(400).json({ error: "Query parameter 'name' is required." });
+    }
+
     const users = await User.findAll({
       where: {
-        fullName: { [Op.iLike]: `%${name}%` } // case insensitive search
+        [Op.or]: [
+          { firstName: { [Op.iLike]: `%${name}%` } },
+          { lastName: { [Op.iLike]: `%${name}%` } }
+        ]
       },
-      attributes: { exclude: ['password', 'activationCode'] }
+      attributes: {
+        exclude: ['password', 'activationCode', 'balance', 'role', 'status']
+      }
     });
 
     return res.status(200).json({ data: users });
@@ -45,62 +55,115 @@ const searchUserByName = async (req, res) => {
   }
 };
 
+/**
+ * Updates the currently logged-in user's profile information
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with updated user data or error message
+ */
 const updateUser = async (req, res) => {
   try {
-    const updates = _.pick(req.body, ['fullName', 'address', 'phoneNumber']);
+    // Validate input - only allow specific fields to be updated
+    const allowedFields = ['firstName', 'lastName', 'address', 'phoneNumber', 'balance'];
+    const updates = _.pick(req.body, allowedFields);
+    
+    // Check if there are any fields to update
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "No valid fields to update." });
+    }
+    
+    // Find the currently logged-in user
     const user = await User.findByPk(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found." });
-
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    
+    // Additional validation could be done here
+    if (updates.phoneNumber && !/^\+?[\d\s()-]{10,15}$/.test(updates.phoneNumber)) {
+      return res.status(400).json({ message: "Invalid phone number format." });
+    }
+    
+    // Update the user record
     await user.update(updates);
-
-    return res.status(200).json({ message: "User updated successfully.", data: _.omit(user.toJSON(), ['password', 'activationCode']) });
+    
+    // Return success response with updated user data (excluding sensitive info)
+    return res.status(200).json({ 
+      message: "User profile updated successfully.", 
+      data: _.omit(user.toJSON(), ['password', 'activationCode', 'resetToken']) 
+    });
+    
   } catch (error) {
     console.error("Error updating user:", error);
-    return res.status(500).json({ error: "An error occurred." });
+    
+    
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({ 
+        message: "Validation error", 
+        errors: error.errors.map(e => e.message) 
+      });
+    }
+    
+    return res.status(500).json({ message: "An internal server error occurred." });
   }
 };
+
 
 const uploadProfileImage = async (req, res) => {
   try {
     const file = req.file;
-
     if (!file) {
       return res.status(400).json({ error: "Profile image is required." });
     }
 
-    const userId = req.params.id; 
-
+    const userId = req.params.id;
     const user = await User.findByPk(userId);
+    
     if (!user) {
       return res.status(404).json({ error: "User not found." });
+    }
+
+    // Ensure the authenticated user can only modify their own profile
+    if (user.id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Not authorized to modify this profile." });
     }
 
     user.profileImage = `/uploads/${file.filename}`;
     await user.save();
 
-    return res.status(200).json({ message: "Profile image updated successfully", data: user });
+    return res.status(200).json({ 
+      message: "Profile image updated successfully", 
+      data: _.omit(user.toJSON(), ['password', 'activationCode'])
+    });
   } catch (error) {
     console.error("Error uploading profile image:", error);
-    res.status(500).json({ error: "Failed to upload profile image" });
+    return res.status(500).json({ error: "Failed to upload profile image" });
   }
 };
+
 const removeProfileImage = async (req, res) => {
   try {
-    const userId = req.params.id; // Get the user ID from the URL params
-
+    const userId = req.params.id;
     const user = await User.findByPk(userId);
+    
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
 
-    // Remove the profile image by setting it to null
+    // Ensure the authenticated user can only modify their own profile
+    if (user.id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Not authorized to modify this profile." });
+    }
+
     user.profileImage = null;
     await user.save();
 
-    return res.status(200).json({ message: "Profile image removed successfully", data: user });
+    return res.status(200).json({ 
+      message: "Profile image removed successfully", 
+      data: _.omit(user.toJSON(), ['password', 'activationCode'])
+    });
   } catch (error) {
     console.error("Error removing profile image:", error);
-    res.status(500).json({ error: "Failed to remove profile image" });
+    return res.status(500).json({ error: "Failed to remove profile image" });
   }
 };
 

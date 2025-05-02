@@ -18,7 +18,7 @@ const userValidation =Joi.object({
           'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*).',
         'string.min': 'Password must be at least 8 characters long.',
       }),
-      role:Joi.string().default('client'),
-      gender:Joi.string().valid('Male','Female','Other').required(),
+      role: Joi.string().valid("admin", "client").default("client")
+    
   });
 export default userValidation;

@@ -7,6 +7,8 @@ const bookValidator = Joi.object({
   description: Joi.string().max(500).optional(),
   quantityInStock: Joi.number().integer().min(0).required(),
   unitPrice: Joi.number().greater(0).required(),
+  publishingDate: Joi.date().iso().required(),
+  status: Joi.string().valid('Arrived', 'In Transit').optional()
 });
 
 export default bookValidator;
